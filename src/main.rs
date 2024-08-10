@@ -10,5 +10,7 @@ fn main() {
     // Roll the character reputation
     let _player = Character::roll();
 
-    let _npc = NPC::new(&game_state, vec![NPCType::Races(character::Races::Human), NPCType::Guard]);
+    let npc = NPC::new(&game_state, character::Races::Human, vec![NPCType::Races(character::Races::Human), NPCType::Guard]);
+
+    println!("This npcs knowledge of the world is: \n{:?}", npc._knowledge)
 }
