@@ -30,8 +30,8 @@ impl Roll for Character {
         return Character {
             _reputation: Reputation {
                 _slaughterer: Self::roll_slaughterer(),
-            }
-        } 
+            },
+        };
     }
 }
 
@@ -39,12 +39,11 @@ impl Roll for Character {
 pub enum Races {
     Human,
     Elf,
-    Dwarf
+    Dwarf,
 }
 
 pub type Slaughterer = HashMap<Races, i32>;
 
 pub struct Reputation {
-    pub _slaughterer: HashMap<Races, i32>
+    pub _slaughterer: HashMap<Races, i32>,
 }
-
