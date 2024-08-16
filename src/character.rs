@@ -84,7 +84,7 @@ pub trait Mappable {
 
 impl Mappable for Slaughterer {
     fn get_name(&self) -> String {
-        return "slaughterer".to_string();
+        return "slaughterers".to_string();
     }
 
     fn to_hashmap(&self) -> HashMap<String, f32> {
@@ -115,7 +115,7 @@ impl Mappable for Slaughterer {
 
 impl Mappable for Saviour {
     fn get_name(&self) -> String {
-        return "saviour".to_string();
+        return "saviours".to_string();
     }
     fn to_hashmap(&self) -> HashMap<String, f32> {
         let mut map: HashMap<String, f32> = HashMap::new();

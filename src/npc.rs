@@ -1,6 +1,5 @@
 use crate::character::{Mappable, Races, Saviour, Slaughterer};
 use crate::gamestate::GameState;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 
 // At runtime need to inject knowledge from preset values i.e Humans and Guards
@@ -16,6 +15,7 @@ impl Knowledge {
     fn knowledge_to_hashmap(&self) -> HashMap<String, Box<dyn Mappable>> {
         let mut map: HashMap<String, Box<dyn Mappable>> = HashMap::new();
         map.insert("slaughterers".to_string(), Box::new(self.slaughterers.clone()));
+        map.insert("saviours".to_string(), Box::new(self.saviours.clone()));
         return map;
     }
 }
@@ -81,7 +81,7 @@ impl NPC {
             .into_iter()
             .map(|knowledge| -> f32 {
                 let knowledge_map = knowledge.knowledge_to_hashmap();
-                let knowledge_of_type: &Box<dyn Mappable>  = knowledge_map.get::<String>(&knowledge_type.get_name()).unwrap();
+                let knowledge_of_type: &Box<dyn Mappable>  = knowledge_map.get::<String>(&knowledge_type.get_name()).expect("error getting key value from knowledge_map");
                 return knowledge_of_type.to_hashmap().get(key).unwrap().clone();
             })
             .collect();
