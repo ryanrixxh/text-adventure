@@ -1,4 +1,6 @@
-use crate::character::Races;
+use crate::character::{Mappable, Races, Saviour, Slaughterer};
+use crate::gamestate::GameState;
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 // At runtime need to inject knowledge from preset values i.e Humans and Guards
@@ -6,14 +8,15 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Knowledge {
-    pub slaughterers: HashMap<Races, f32>, // TODO: This probably needs to be a RefCel so that it can be read properly
+    pub slaughterers: Slaughterer,
+    pub saviours: Saviour, // TODO: This probably needs to be a RefCel so that it can be read properly
 }
 
 impl Knowledge {
-    pub fn new() -> Self {
-        Knowledge {
-            slaughterers: HashMap::new(),
-        }
+    fn knowledge_to_hashmap(&self) -> HashMap<String, Box<dyn Mappable>> {
+        let mut map: HashMap<String, Box<dyn Mappable>> = HashMap::new();
+        map.insert("slaughterers".to_string(), Box::new(self.slaughterers.clone()));
+        return map;
     }
 }
 
@@ -23,50 +26,11 @@ pub enum NPCType {
     Guard,
 }
 
-pub struct GameState {
-    pub base_knowledge: HashMap<NPCType, Knowledge>,
-}
-
-impl GameState {
-    fn init_base_knowledge() -> HashMap<NPCType, Knowledge> {
-        return HashMap::from([
-            (
-                NPCType::Races(Races::Human),
-                Knowledge {
-                    slaughterers: HashMap::from([
-                        (Races::Human, 0.8), // A human is most likely to know about someone who has a reputation for slaughtering humans
-                        (Races::Elf, 0.3),
-                        (Races::Dwarf, 0.1),
-                    ]),
-                },
-            ),
-            (
-                NPCType::Guard,
-                Knowledge {
-                    slaughterers: HashMap::from([
-                        (Races::Human, 0.7),
-                        (Races::Elf, 0.7),
-                        (Races::Dwarf, 0.7), // Guards are fairly likely to know about slaughterers
-                    ]),
-                },
-            ),
-        ]);
-    }
-
-    pub fn init_game_state() -> Self {
-        Self {
-            base_knowledge: Self::init_base_knowledge(),
-        }
-    }
-}
-
 pub struct NPC {
     pub _race: Races,
-    pub _knowledge: Knowledge,
+    pub knowledge: Knowledge,
 }
 
-// TODO Need to know what base_knowledge to grab from gamestate in order to fill out the actual knowledge.
-// How the hell are we gonna use the NPCType on the tuple for each of the properties with ANOTHER hashmap. Yikes.
 impl NPC {
     pub fn new(game_state: &GameState, race: Races, types: Vec<NPCType>) -> Self {
         let mut knowledge_vec: Vec<&Knowledge> = Vec::new();
@@ -86,30 +50,45 @@ impl NPC {
 
         return Self {
             _race: race, // TODO: Change this once it gets read
-            _knowledge: Self::generate_final_knowledge(knowledge_vec),
+            knowledge: Self::generate_final_knowledge(knowledge_vec),
         };
     }
 
     fn generate_final_knowledge(knowledge_vec: Vec<&Knowledge>) -> Knowledge {
-        let first = knowledge_vec[0]; // The first set of knowledge will have the same keys as the rest
+        let first = knowledge_vec[0]; 
 
-        let mut final_knowledge = Knowledge::new();
-        for (key, _value) in &first.slaughterers {
-            let mapped: Vec<&f32> = knowledge_vec
-                .clone()
-                .into_iter()
-                .map(|knowledge| -> &f32 {
-                    knowledge
-                        .slaughterers
-                        .get(key)
-                        .expect("Error grabbing value for key")
-                })
-                .collect();
-            let total: f32 = mapped.iter().copied().sum();
-            let mean = total / mapped.capacity() as f32;
-            final_knowledge.slaughterers.insert(key.clone(), mean);
+        // Takes the first bit of knowledge, and compares its different catagories against all other sets of knowledge
+        let slaughterer_total = Self::generate_knowledge_for_type::<Slaughterer>(knowledge_vec.clone(), &first.slaughterers);
+        let slaughterer: Slaughterer = Slaughterer::from_hashmap(slaughterer_total);
+
+        let saviour_total = Self::generate_knowledge_for_type::<Saviour>(knowledge_vec.clone(), &first.saviours);
+        let saviour: Saviour = Saviour::from_hashmap(saviour_total);
+
+        return Knowledge {
+            slaughterers: slaughterer,
+            saviours: saviour
+        };
+    }
+    
+    /// Takes a given vector knowledge and a type of sub-knowledge. For each property in that bit of sub-knowledge, compare that same 
+    /// value of sub-knowledge against all other sets of knowledge. 
+    /// **Returns** - A hashmap of values representing the average of all the combined knowledge for that particular subtype
+    fn generate_knowledge_for_type<T: Mappable>(knowledge_vec: Vec<&Knowledge>, knowledge_type: &T) -> HashMap<String, f32> {
+        let mut sub_type_total: HashMap<String, f32> = HashMap::new();
+        for (key, _value) in &knowledge_type.to_hashmap() {
+        let mapped: Vec<f32> = knowledge_vec
+            .clone()
+            .into_iter()
+            .map(|knowledge| -> f32 {
+                let knowledge_map = knowledge.knowledge_to_hashmap();
+                let knowledge_of_type: &Box<dyn Mappable>  = knowledge_map.get::<String>(&knowledge_type.get_name()).unwrap();
+                return knowledge_of_type.to_hashmap().get(key).unwrap().clone();
+            })
+            .collect();
+        let total: f32 = mapped.iter().sum();
+        let mean = total / mapped.capacity() as f32;
+        sub_type_total.insert(key.to_owned(), mean);
         }
-
-        return final_knowledge;
+        return sub_type_total
     }
 }
