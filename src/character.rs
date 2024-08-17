@@ -15,7 +15,7 @@ pub trait Roll {
 }
 
 pub struct Character {
-    pub _reputation: Reputation,
+    pub reputation: Reputation,
 }
 
 impl Roll for Character {
@@ -37,7 +37,7 @@ impl Roll for Character {
 
     fn roll() -> Character {
         return Character {
-            _reputation: Reputation {
+            reputation: Reputation {
                 _slaughterer: Self::roll_slaughterer(),
                 _saviour: Self::roll_saviour()
             },
@@ -52,16 +52,6 @@ pub enum Races {
     Dwarf,
 }
 
-// TODO: Explore if this can be written a lot better with:
-/*
-    pub enum Slaughterer {
-        Human(String)
-    }
-
-    And then the gamestate creates into enums instead of structs.
-    This might remove the need for HashMaps because you can iterate through enums as if they were arrays. 
-    https://stackoverflow.com/questions/21371534/in-rust-is-there-a-way-to-iterate-through-the-values-of-an-enum
-*/
 #[derive(Debug, Clone)]
 pub struct Slaughterer {
     pub human: f32,
@@ -143,6 +133,7 @@ impl Mappable for Saviour {
     }
 }
 
+#[derive(Debug)]
 // TODO: This is used to compare the players reputation vs the NPCs knowledge. The result will represent "how well the NPC knows the player". WIP
 pub struct Reputation {
     pub _slaughterer: Slaughterer,

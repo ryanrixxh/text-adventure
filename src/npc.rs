@@ -1,4 +1,4 @@
-use crate::character::{Mappable, Races, Saviour, Slaughterer};
+use crate::character::{Mappable, Races, Reputation, Saviour, Slaughterer};
 use crate::gamestate::GameState;
 use std::collections::HashMap;
 
@@ -28,7 +28,7 @@ pub enum NPCType {
 
 pub struct NPC {
     pub _race: Races,
-    pub knowledge: Knowledge,
+    pub base_knowledge: Knowledge,
 }
 
 impl NPC {
@@ -50,7 +50,7 @@ impl NPC {
 
         return Self {
             _race: race, // TODO: Change this once it gets read
-            knowledge: Self::generate_final_knowledge(knowledge_vec),
+            base_knowledge: Self::generate_final_knowledge(knowledge_vec),
         };
     }
 
@@ -90,5 +90,12 @@ impl NPC {
         sub_type_total.insert(key.to_owned(), mean);
         }
         return sub_type_total
+    }
+
+    /// Evaluates the reputation of the player against the npc knowledge of the world. Determines whether or not the npc knows who the player is. 
+    pub fn generate_recognition(&self, reputation: &Reputation) -> () {
+        println!("{:?}", self.base_knowledge);
+        println!("{:?}", reputation);
+        // TODO: Figure out how the hell this function is supposed to work
     }
 }
