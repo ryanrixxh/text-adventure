@@ -1,4 +1,4 @@
-// TODO Clean these dependencies up. Gamestate should have races, and possibly slaughterer
+// TODO Clean these dependencies up. Gamestate should have races, and possibly knowledge struct
 use crate::character::{Races, Saviour, Slaughterer};
 use crate::npc::{Knowledge, NPCType};
 use std::collections::HashMap;
