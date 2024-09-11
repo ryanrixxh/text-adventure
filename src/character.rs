@@ -49,7 +49,6 @@ impl Roll for Character {
 pub enum Races {
     Human,
     Elf,
-    Dwarf,
 }
 
 #[derive(Debug, Clone)]
